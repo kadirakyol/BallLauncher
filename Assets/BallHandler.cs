@@ -1,20 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class BallHandler : MonoBehaviour
 {
+    
     private Camera mainCamera;
     private bool isDragging;
+    private Rigidbody2D currentBallRigidbody; 
+    private SpringJoint2D currentBallSpringJoint;
 
-    [SerializeField] private Rigidbody2D currentBallRigidbody;
-    [SerializeField] private SpringJoint2D currentBallSpringJoint;
+    [SerializeField] private float respawnDelay;
     [SerializeField] private float detachBallTime = 0.1f;
+    [SerializeField] private GameObject ballPrefab;
+    [SerializeField] private Rigidbody2D pivot;
+    
     
     void Start()
     {
         mainCamera = Camera.main;
+        SpawnNewBall();
     }
 
     void Update()
@@ -45,6 +52,16 @@ public class BallHandler : MonoBehaviour
 
     }
 
+    private void SpawnNewBall()
+    {
+        GameObject ballInstance = Instantiate(ballPrefab, pivot.position, Quaternion.identity);
+        currentBallRigidbody = ballInstance.GetComponent<Rigidbody2D>();
+        currentBallSpringJoint = ballInstance.GetComponent<SpringJoint2D>();
+
+        currentBallSpringJoint.connectedBody = pivot;
+
+    }
+
     private void LaunchBall()
     {
         currentBallRigidbody.isKinematic = false;
@@ -56,6 +73,8 @@ public class BallHandler : MonoBehaviour
     {
         currentBallSpringJoint.enabled = false;
         currentBallSpringJoint = null;
+        
+        Invoke("SpawnNewBall",respawnDelay);
         
     }
 
